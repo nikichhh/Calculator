@@ -21,6 +21,24 @@ class Evaluator:
             elif token in self.ops:
                 b = stack.pop()
                 a = stack.pop()
-                stack.append(self.ops[token](a, b))
+                try:
+                    result = self.ops[token](a, b)
 
-        return stack[0] if stack else None
+                    # Handle overflow / underflow manually
+                    if abs(result) > 1e308:  # overflow
+                        result = float('inf')
+                    elif 0 < abs(result) < 1e-308:  # underflow
+                        result = 0.0
+
+                    stack.append(result)
+                except OverflowError:
+                    # Directly convert to scientific notation string
+                    stack.append(f"{a} {token} {b} -> Overflow")
+        
+        # Final result
+        result = stack[0] if stack else None
+
+        # If it's a float, format nicely in scientific notation
+        if isinstance(result, float):
+            return f"{result:.6g}"  # auto-switches to scientific notation if needed
+        return result
