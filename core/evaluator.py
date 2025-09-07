@@ -61,4 +61,3 @@ class Evaluator:
         elif 0 < abs(num) < 1e-308:
             return 0.0
         return num
-
