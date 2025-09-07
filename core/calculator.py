@@ -36,14 +36,5 @@ class Calculator:
         symbolic = SymbolicEvaluator(expression)
         return symbolic.evaluate()
     
-    def _format_result(self, result):
-        if result is None:
-            return None
-        
-        if abs(result) >= self.overflow_limit or (0 < abs(result) < 1e-10):
-            return f"{result:.2e}"
-        
-        return result
-    
     def _allowed_functions(self):
         return {'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'sqrt'}
