@@ -1,15 +1,21 @@
-from sympy import Eq, solve, sympify
-
+from .symbolic_evaluator import SymbolicEvaluator
 from .tokenizer import Tokenizer
 from .parser import Parser
 from .evaluator import Evaluator
 
 class Calculator:
     def __init__(self):
-        pass
+        self.overflow_limit = 1e308  
 
     def calculate(self, expression: str):
-        if any(ch.isalpha() for ch in expression) or '=' in expression:
+        tokenizer = Tokenizer(expression)
+        tokens = tokenizer.tokenize()
+
+        if '=' in expression:
+            return self._handle_symbolic(expression)
+        
+        has_variables = any(token.isalpha() and token not in self._allowed_functions() for token in tokens)
+        if has_variables:
             return self._handle_symbolic(expression)
         return self._handle_numeric(expression)
     
@@ -27,14 +33,17 @@ class Calculator:
     
     def _handle_symbolic(sel, expression: str):
         """Use SymPy for math problems with variables or equations"""
-        if '=' in expression:
-            left, right = expression.split('=')
-            left_expr = sympify(left)
-            right_expr = sympify(right)
-
-            vars_in_expr = list(left_expr.free_symbols.union(right_expr.free_symbols))
-            equation = Eq(left_expr, right_expr)
-            solution = solve(equation, vars_in_expr)
-            return solution
+        symbolic = SymbolicEvaluator(expression)
+        return symbolic.evaluate()
+    
+    def _format_result(self, result):
+        if result is None:
+            return None
         
-        return sympify(expression)
+        if abs(result) >= self.overflow_limit or (0 < abs(result) < 1e-10):
+            return f"{result:.2e}"
+        
+        return result
+    
+    def _allowed_functions(self):
+        return {'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'sqrt'}
