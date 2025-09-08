@@ -22,7 +22,7 @@ class Parser:
                 while stack and stack[-1] != '(':
                     output.append(stack.pop())
                 stack.pop()  # remove '('
-                if stack and stack[-1].isalpha(): # functions before '(')
+                if stack and stack[-1].isalpha(): # functions before '('
                     output.append(stack.pop())
             elif token.isalpha():  # function name(sin, cos, log, ...)
                 stack.append(token)

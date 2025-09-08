@@ -5,8 +5,8 @@ from .evaluator import Evaluator
 
 class Calculator:
     def __init__(self):
-        self.overflow_limit = 1e308  
-
+        pass
+    
     def calculate(self, expression: str):
         tokenizer = Tokenizer(expression)
         tokens = tokenizer.tokenize()
