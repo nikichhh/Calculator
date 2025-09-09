@@ -1,9 +1,9 @@
 import operator
-import math
+from functions import all_functions
 
 class Evaluator:
-    def __init__(self, postfix_tokens):
-        self.postfix_tokens = postfix_tokens
+    def __init__(self):
+        self.functions = all_functions
         self.ops = {
             '+': operator.add,
             '-': operator.sub,
@@ -12,25 +12,14 @@ class Evaluator:
             '^': operator.pow,
         }
 
-        # All trig functions expect degrees
-        self.functions = {
-            'sin': math.sin,
-            'cos': math.cos,
-            'tan': math.tan,
-            'asin': math.asin,
-            'acos': math.acos,
-            'atan': math.atan,
-            'log': math.log,    # natural log
-            'sqrt': math.sqrt,
-        }
-
-    def evaluate(self):
+    def evaluate(self, postfix):
         stack = []
 
-        for token in self.postfix_tokens:
-            if token.replace('.', '', 1).isdigit():
-                stack.append(float(token))
-            elif token in self.ops:
+        for token in postfix:
+            if isinstance(token, float):  # number
+                stack.append(token)
+
+            elif token in self.ops:  # operator
                 b = stack.pop()
                 a = stack.pop()
                 try:
@@ -39,21 +28,20 @@ class Evaluator:
                     stack.append(result)
                 except OverflowError:
                     stack.append(float('inf'))
-            elif token in self.functions:
-                a = stack.pop()
+
+            elif isinstance(token, tuple):  # (func_name, args)
+                func_name, argc = token
+                func = self.functions[func_name]
+                args = [stack.pop() for _ in range(argc)][::-1]
+
                 try:
-                    result = self.functions[token](a)
+                    result = func.evaluate(*args)
                     result = self._handle_overflow(result)
                     stack.append(result)
                 except OverflowError:
                     stack.append(float('inf'))
-            else:  # variable support later
-                stack.append(token)
 
-        result = stack[0] if stack else None
-        if isinstance(result, float):
-            return f"{result:.6g}"  # auto scientific notation if large/small
-        return result
+        return stack[0] if stack else None
 
     def _handle_overflow(self, num):
         if abs(num) > 1e308:
