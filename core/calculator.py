@@ -1,40 +1,42 @@
-from .symbolic_evaluator import SymbolicEvaluator
 from .tokenizer import Tokenizer
 from .parser import Parser
 from .evaluator import Evaluator
+from functions import all_functions
+from sympy_engine.sympy_wrapper import SympyWrapper
 
 class Calculator:
     def __init__(self):
-        pass
-    
+        self.operators = {
+            '+': (1, 'L'),
+            '-': (1, 'L'),
+            '*': (2, 'L'),
+            '/': (2, 'L'),
+            '^': (3, 'R'),
+        }
+        self.tokenizer = Tokenizer()
+        self.parser = Parser(all_functions, self.operators)
+        self.evaluator = Evaluator()
+        self.sympy_engine = SympyWrapper()
+
     def calculate(self, expression: str):
-        tokenizer = Tokenizer(expression)
-        tokens = tokenizer.tokenize()
+        try:
+            tokens = self.tokenizer.tokenize(expression)
 
-        if '=' in expression:
-            return self._handle_symbolic(expression)
-        
-        has_variables = any(token.isalpha() and token not in self._allowed_functions() for token in tokens)
-        if has_variables:
-            return self._handle_symbolic(expression)
-        return self._handle_numeric(expression)
-    
-    def _handle_numeric(self, expression: str):
-        """Use Shunting Yard Algorithm for plain numeric math."""
-        """The time complexity is O(n)"""
-        tokenizer = Tokenizer(expression)
-        tokens = tokenizer.tokenize()
+            # Check for variables (symbols not in operators/functions)
+            has_variable = any(
+                token.isalpha() and token not in self.operators and token not in self.parser.functions
+                for token in tokens
+            )
 
-        parser = Parser(tokens)
-        postfix = parser.to_postfix()
+            if has_variable or "=" in expression:
+                return str(self.sympy_engine.evaluate(expression))
 
-        evaluator = Evaluator(postfix)
-        return evaluator.evaluate()
-    
-    def _handle_symbolic(sel, expression: str):
-        """Use SymPy for math problems with variables or equations"""
-        symbolic = SymbolicEvaluator(expression)
-        return symbolic.evaluate()
-    
-    def _allowed_functions(self):
-        return {'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'sqrt'}
+            postfix = self.parser.to_postfix(tokens)
+            result = self.evaluator.evaluate(postfix)
+
+            if isinstance(result, float):
+                return f"{result:.6g}"
+            return result
+
+        except Exception as e:
+            return f"Error: {e}"
