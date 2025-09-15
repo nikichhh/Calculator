@@ -1,4 +1,5 @@
 import operator
+from exceptions.DivisionByZeroError import DivisionByZeroError
 from functions import all_functions
 
 class Evaluator:
@@ -26,6 +27,8 @@ class Evaluator:
                     result = self.ops[token](a, b)
                     result = self._handle_overflow(result)
                     stack.append(result)
+                except ZeroDivisionError:
+                    raise DivisionByZeroError()
                 except OverflowError:
                     stack.append(float('inf'))
 
