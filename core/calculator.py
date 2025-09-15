@@ -1,3 +1,6 @@
+from exceptions.EmptyExpression import EmptyExpression
+from exceptions.InvalidExpressionError import InvalidExpressionError
+from exceptions.DivisionByZeroError import DivisionByZeroError
 from .tokenizer import Tokenizer
 from .parser import Parser
 from .evaluator import Evaluator
@@ -19,6 +22,10 @@ class Calculator:
         self.sympy_engine = SympyWrapper()
 
     def calculate(self, expression: str):
+        expression = expression.strip()
+        if not expression:
+            raise EmptyExpression()
+        
         try:
             tokens = self.tokenizer.tokenize(expression)
 
@@ -37,6 +44,12 @@ class Calculator:
             if isinstance(result, float):
                 return f"{result:.6g}"
             return result
-
+        
+        except EmptyExpression as e:
+            return str(e)
+        except DivisionByZeroError as e:
+            return 'inf'
+        except InvalidExpressionError as e:
+            return str(e)
         except Exception as e:
             return f"Error: {e}"
