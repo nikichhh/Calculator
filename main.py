@@ -1,4 +1,4 @@
-from core.calculator import Calculator
+from calculator.core.calculator import Calculator
 
 def main():
     calc = Calculator()
@@ -8,7 +8,7 @@ def main():
             break
         try:
             result = calc.calculate(expr)
-            print("Result:", result)
+            print(result)
         except Exception as e:
             print("Error:", e)
 

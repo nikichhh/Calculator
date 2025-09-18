@@ -12,5 +12,3 @@ venv/
 # IDEs
 .idea/
 .vscode/
-
-tests/
