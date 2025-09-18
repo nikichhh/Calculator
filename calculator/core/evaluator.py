@@ -1,6 +1,7 @@
 import operator
-from exceptions.DivisionByZeroError import DivisionByZeroError
+from calculator.exceptions.DivisionByZeroError import DivisionByZeroError
 from functions import all_functions
+from decimal import Decimal, getcontext, Overflow, InvalidOperation, DivisionByZero
 
 class Evaluator:
     def __init__(self):
@@ -12,12 +13,13 @@ class Evaluator:
             '/': operator.truediv,
             '^': operator.pow,
         }
+        getcontext().prec = 1000
 
     def evaluate(self, postfix):
         stack = []
 
         for token in postfix:
-            if isinstance(token, float):  # number
+            if isinstance(token, Decimal):  # number
                 stack.append(token)
 
             elif token in self.ops:  # operator
@@ -25,12 +27,15 @@ class Evaluator:
                 a = stack.pop()
                 try:
                     result = self.ops[token](a, b)
-                    result = self._handle_overflow(result)
                     stack.append(result)
-                except ZeroDivisionError:
+                except DivisionByZero:
                     raise DivisionByZeroError()
-                except OverflowError:
+                except (Overflow, InvalidOperation):
                     stack.append(float('inf'))
+
+            elif token == 'NEG':
+                a = stack.pop()
+                stack.append(-a)
 
             elif isinstance(token, tuple):  # (func_name, args)
                 func_name, argc = token
@@ -39,16 +44,8 @@ class Evaluator:
 
                 try:
                     result = func.evaluate(*args)
-                    result = self._handle_overflow(result)
                     stack.append(result)
-                except OverflowError:
+                except (Overflow, InvalidOperation):
                     stack.append(float('inf'))
 
         return stack[0] if stack else None
-
-    def _handle_overflow(self, num):
-        if abs(num) > 1e308:
-            return float('inf')
-        elif 0 < abs(num) < 1e-308:
-            return 0.0
-        return num

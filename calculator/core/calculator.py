@@ -1,3 +1,4 @@
+from decimal import Decimal
 from exceptions.EmptyExpression import EmptyExpression
 from exceptions.InvalidExpressionError import InvalidExpressionError
 from exceptions.DivisionByZeroError import DivisionByZeroError
@@ -15,6 +16,7 @@ class Calculator:
             '*': (2, 'L'),
             '/': (2, 'L'),
             '^': (3, 'R'),
+            'NEG': (4, 'R'),
         }
         self.tokenizer = Tokenizer()
         self.parser = Parser(all_functions, self.operators)
@@ -41,7 +43,7 @@ class Calculator:
             postfix = self.parser.to_postfix(tokens)
             result = self.evaluator.evaluate(postfix)
 
-            if isinstance(result, float):
+            if isinstance(result, Decimal):
                 return f"{result:.6g}"
             return result
         
